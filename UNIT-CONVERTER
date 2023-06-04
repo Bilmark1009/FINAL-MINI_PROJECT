@@ -1,1 +1,535 @@
+#include <stdio.h>
+
+#include <stdlib.h>
+
+#include <string.h>
+
+#define MAX_NAME_LENGTH 20
+
+#define MAX_HISTORY_SIZE 100
+
+// Menu options
+
+enum {
+
+    MENU_CM_TO_IN = 1,
+
+    MENU_IN_TO_CM,
+
+    MENU_KG_TO_LB,
+
+    MENU_LB_TO_KG,
+
+    MENU_VIEW_HISTORY,
+
+    MENU_CLEAR_HISTORY,
+
+    MENU_SAVE_HISTORY,
+
+    MENU_LOAD_HISTORY,
+
+    MENU_QUIT
+
+};
+
+// Structure to represent a unit of measurement
+
+typedef struct {
+
+    char name[MAX_NAME_LENGTH];
+
+    double conversionFactor;
+
+} Unit;
+
+// Structure to represent a conversion
+
+typedef struct {
+
+    char inputUnit[MAX_NAME_LENGTH];
+
+    double inputValue;
+
+    char outputUnit[MAX_NAME_LENGTH];
+
+    double outputValue;
+
+} Conversion;
+
+// Global variables
+
+Unit* units;
+
+Conversion* conversionHistory;
+
+int historySize = 0;
+
+// Function to clear the console screen
+
+void clear_screen()
+
+{
+
+#ifdef _WIN32
+
+    system("cls");
+
+#else
+
+    system("clear");
+
+#endif
+
+}
+
+// Function to print the program title
+
+void print_title()
+
+{
+
+    clear_screen();
+
+    printf("╔══════════════════════════════╗\n");
+
+    printf("║        UNIT CONVERTER        ║\n");
+
+    printf("╚══════════════════════════════╝\n");
+
+}
+
+// Function to print the main menu
+
+void print_menu()
+
+{
+
+    clear_screen();
+
+    printf("╔══════════════════════════════╗\n");
+
+    printf("║       CONVERTIBLE UNITS      ║\n");
+
+    printf("╠══════════════════════════════╣\n");
+
+    printf("║ 1. Centimeters to Inches     ║\n");
+
+    printf("║ 2. Inches to Centimeters     ║\n");
+
+    printf("║ 3. Kilograms to Pounds       ║\n");
+
+    printf("║ 4. Pounds to Kilograms       ║\n");
+
+    printf("║ 5. View Conversion History   ║\n");
+
+    printf("║ 6. Clear Conversion History  ║\n");
+
+    printf("║ 7. Save Conversion History   ║\n");
+
+    printf("║ 8. Load Conversion History   ║\n");
+
+    printf("║ 9. Quit                      ║\n");
+
+    printf("╚══════════════════════════════╝\n");
+
+}
+
+// Function to print the conversion history menu
+
+void print_history_menu()
+
+{
+
+    clear_screen();
+
+    printf("╔══════════════════════════════╗\n");
+
+    printf("║     CONVERSION HISTORY       ║\n");
+
+    printf("╠══════════════════════════════╣\n");
+
+    printf("║ 1. View All Conversions      ║\n");
+
+    printf("║ 2. Clear Conversion History  ║\n");
+
+    printf("║ 3. Return to Main Menu       ║\n");
+
+    printf("╚══════════════════════════════╝\n");
+
+}
+
+// Function to convert a value using the provided conversion factor
+
+double convert_value(double value, double conversionFactor)
+
+{
+
+    return value * conversionFactor;
+
+}
+
+// Function to save a conversion to the conversion history array
+
+void save_conversion_history(const Conversion* conversion)
+
+{
+
+    if (historySize < MAX_HISTORY_SIZE) {
+
+        conversionHistory[historySize++] = *conversion;
+
+    }
+
+}
+
+// Function to display the conversion history stored in the array
+
+void display_conversion_history()
+
+{
+
+    print_title();
+
+    printf("╔══════════════════════════════════════════════╗\n");
+
+    printf("║            CONVERSION HISTORY                ║\n");
+
+    printf("╠══════════════════════════════════════════════╣\n");
+
+    printf("║ Input                │ Output                ║\n");
+
+    for (int i = 0; i < historySize; i++) {
+
+        printf("║ %-20s │ %-20s  ║\n", conversionHistory[i].inputUnit, conversionHistory[i].outputUnit);
+
+        printf("║ %-20.2f │ %-20.2f  ║\n", conversionHistory[i].inputValue, conversionHistory[i].outputValue);
+
+    }
+
+    printf("╚══════════════════════════════════════════════╝\n");
+
+    printf("Press enter to continue...");
+
+    getchar();
+
+    getchar();
+
+}
+
+// Function to clear the conversion history
+
+void clear_conversion_history()
+
+{
+
+    historySize = 0;
+
+}
+
+// Function to save the conversion history to a file
+
+void save_conversion_history_to_file()
+
+{
+
+    char filename[100];
+
+    printf("Enter the filename to save the conversion history: ");
+
+    scanf("%s", filename);
+
+    FILE* file = fopen(filename, "w");
+
+    if (file == NULL) {
+
+        printf("Error opening the file.\n");
+
+        return;
+
+    }
+
+    for (int i = 0; i < historySize; i++) {
+
+        fprintf(file, "%s %lf %s %lf\n", conversionHistory[i].inputUnit, conversionHistory[i].inputValue,
+
+            conversionHistory[i].outputUnit, conversionHistory[i].outputValue);
+
+    }
+
+    fclose(file);
+
+    printf("Conversion history saved to %s successfully.\n", filename);
+
+    printf("Press enter to continue...");
+
+    getchar();
+
+    getchar();
+
+}
+
+// Function to load the conversion history from a file
+
+void load_conversion_history_from_file()
+
+{
+
+    char filename[100];
+
+    printf("Enter the filename to load the conversion history: ");
+
+    scanf("%s", filename);
+
+    FILE* file = fopen(filename, "r");
+
+    if (file == NULL) {
+
+        printf("Error opening the file.\n");
+
+        return;
+
+    }
+
+    clear_conversion_history();
+
+    Conversion conversion;
+
+    while (fscanf(file, "%s %lf %s %lf\n", conversion.inputUnit, &conversion.inputValue, conversion.outputUnit,
+
+        &conversion.outputValue) == 4) {
+
+        save_conversion_history(&conversion);
+
+    }
+
+    fclose(file);
+
+    printf("Conversion history loaded from %s successfully.\n", filename);
+
+    printf("Press enter to continue...");
+
+    getchar();
+
+    getchar();
+
+}
+
+int main()
+
+{
+
+    units = (Unit*)malloc(4 * sizeof(Unit));
+
+    conversionHistory = (Conversion*)malloc(MAX_HISTORY_SIZE * sizeof(Conversion));
+
+    // Initialize the units
+
+    strcpy(units[0].name, "Centimeters");
+
+    units[0].conversionFactor = 0.393701;
+
+    strcpy(units[1].name, "Inches");
+
+    units[1].conversionFactor = 2.54;
+
+    strcpy(units[2].name, "Kilograms");
+
+    units[2].conversionFactor = 2.20462;
+
+    strcpy(units[3].name, "Pounds");
+
+    units[3].conversionFactor = 0.453592;
+
+    int choice;
+
+    double inputValue;
+
+    int inputUnitIndex, outputUnitIndex;
+
+    do {
+
+        print_menu();
+
+        printf("Enter your choice: ");
+
+        scanf("%d", &choice);
+
+        switch (choice) {
+
+            case MENU_CM_TO_IN:
+
+                inputUnitIndex = 0;
+
+                outputUnitIndex = 1;
+
+                break;
+
+            case MENU_IN_TO_CM:
+
+                inputUnitIndex = 1;
+
+                outputUnitIndex = 0;
+
+                break;
+
+            case MENU_KG_TO_LB:
+
+                inputUnitIndex = 2;
+
+                outputUnitIndex = 3;
+
+                break;
+
+            case MENU_LB_TO_KG:
+
+                inputUnitIndex = 3;
+
+                outputUnitIndex = 2;
+
+                break;
+
+            case MENU_VIEW_HISTORY:
+
+                print_history_menu();
+
+                printf("Enter your choice: ");
+
+                scanf("%d", &choice);
+
+                switch (choice) {
+
+                    case 1:
+
+                        display_conversion_history();
+
+                        break;
+
+                    case 2:
+
+                        clear_conversion_history();
+
+                        printf("Conversion history cleared.\n");
+
+                        printf("Press enter to continue...");
+
+                        getchar();
+
+                        getchar();
+
+                        break;
+
+                    case 3:
+
+                        // Do nothing, return to the main menu
+
+                        break;
+
+                    default:
+
+                        printf("Invalid choice.\n");
+
+                        printf("Press enter to continue...");
+
+                        getchar();
+
+                        getchar();
+
+                        break;
+
+                }
+
+                continue;
+
+            case MENU_CLEAR_HISTORY:
+
+                clear_conversion_history();
+
+                printf("Conversion history cleared.\n");
+
+                printf("Press enter to continue...");
+
+                getchar();
+
+                getchar();
+
+                continue;
+
+            case MENU_SAVE_HISTORY:
+
+                save_conversion_history_to_file();
+
+                continue;
+
+            case MENU_LOAD_HISTORY:
+
+                load_conversion_history_from_file();
+
+                continue;
+
+            case MENU_QUIT:
+
+                printf("Thank you for using the unit converter. Goodbye!\n");
+
+                break;
+
+            default:
+
+                printf("Invalid choice.\n");
+
+                printf("Press enter to continue...");
+
+                getchar();
+
+                getchar();
+
+                continue;
+
+        }
+
+        if (choice == MENU_QUIT) {
+
+            break;
+
+        }
+
+        print_title();
+
+        printf("Enter the value in %s: ", units[inputUnitIndex].name);
+
+        scanf("%lf", &inputValue);
+
+        double outputValue = convert_value(inputValue, units[outputUnitIndex].conversionFactor);
+
+        Conversion conversion;
+
+        strcpy(conversion.inputUnit, units[inputUnitIndex].name);
+
+        conversion.inputValue = inputValue;
+
+        strcpy(conversion.outputUnit, units[outputUnitIndex].name);
+
+        conversion.outputValue = outputValue;
+
+        save_conversion_history(&conversion);
+
+        printf("%.2f %s is equal to %.2f %s.\n", inputValue, units[inputUnitIndex].name, outputValue,
+
+            units[outputUnitIndex].name);
+
+        printf("Press enter to continue...");
+
+        getchar();
+
+        getchar();
+
+    } while (1);
+
+    free(units);
+
+    free(conversionHistory);
+
+    return 0;
+
+}
+
 
