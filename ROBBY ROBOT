@@ -1,1 +1,317 @@
+#include <stdio.h>
 
+#include <stdlib.h>
+
+#include <unistd.h> // for sleep() function
+
+typedef struct {
+
+    int x;
+
+    int y;
+
+} Location;
+
+void clearScreen()
+
+{
+
+#ifdef _WIN32
+
+    system("cls");
+
+#else
+
+    system("clear");
+
+#endif
+
+}
+
+void showOrigin()
+
+{
+
+    clearScreen();
+
+    
+
+    printf("            y-axis\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("--------------+---------------> x-axis\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("              |\n");
+
+    printf("          Origin (0, 0)\n\n");
+
+    printf("Each dot represents a coordinate point on the plane.\n\n");
+
+    printf("Press Enter to continue...");
+
+    while (getchar() != '\n') ; // Flush the input buffer
+
+    getchar(); // Wait for user to press Enter
+
+    clearScreen();
+
+}
+
+void showLocation(Location location)
+
+{
+
+    clearScreen();
+
+    printf("Robot Location: (%d, %d)\n\n", location.x, location.y);
+
+    printf("Press Enter to continue...");
+
+    while (getchar() != '\n') ; // Flush the input buffer
+
+    getchar(); // Wait for user to press Enter
+
+    clearScreen();
+
+}
+
+void moveRobot(Location* location)
+
+{
+
+    clearScreen();
+
+    printf("ROBOT'S MOVEMENT\n\n");
+
+    printf("─────────────\n\n");
+
+    printf("      [W]\n");
+
+    printf("   [A]   [D]\n");
+
+    printf("      [S]\n\n ");
+
+    printf("─────────────\n\n");
+
+    printf("Use 'W', 'A', 'S', 'D' to move the robot.\n");
+
+    int deltaX = 0, deltaY = 0; // Movement in x and y directions
+
+    char direction;
+
+    printf("Enter a direction: ");
+
+    scanf(" %c", &direction);
+
+    int points;
+
+    printf("How many points? ");
+
+    if (scanf("%d", &points) != 1 || points < 0) {
+
+        printf("Invalid number of points.\n");
+
+        return;
+
+    }
+
+    switch (direction)
+
+    {
+
+        case 'W':
+
+        case 'w': // North
+
+            deltaY += points;
+
+            break;
+
+        case 'A':
+
+        case 'a': // West
+
+            deltaX -= points;
+
+            break;
+
+        case 'S':
+
+        case 's': // South
+
+            deltaY -= points;
+
+            break;
+
+        case 'D':
+
+        case 'd': // East
+
+            deltaX += points;
+
+            break;
+
+        default:
+
+            printf("Invalid direction.\n");
+
+            return;
+
+    }
+
+    location->x += deltaX;
+
+    location->y += deltaY;
+
+    clearScreen();
+
+   
+
+    // Print the Cartesian plane with the updated location
+
+    for (int y = 5; y >= -5; y--)
+
+    {
+
+        for (int x = -10; x <= 10; x++)
+
+        {
+
+            if (x == location->x && y == location->y)
+
+                printf("• "); // Dot represents the updated location
+
+            else if (x == 0 && y == 0)
+
+                printf("O "); // Origin
+
+            else if (x == 0)
+
+                printf("| ");
+
+            else if (y == 0)
+
+                printf("- ");
+
+            else
+
+                printf(". ");
+
+        }
+
+        printf("\n");
+
+    }
+
+    printf("\nPress Enter to continue...");
+
+    while (getchar() != '\n') ; // Flush the input buffer
+
+    getchar(); // Wait for user to press Enter
+
+    clearScreen();
+
+}
+
+int main()
+
+{
+
+    char choice;
+
+    Location currentLocation = {0, 0};
+
+    while (1)
+
+    {
+
+        clearScreen();
+
+        
+
+        printf("┌───────────────────────────────────────────┐\n");
+
+        printf("│                                           │\n");
+
+        printf("│            Robot Command Menu             │\n");
+
+        printf("│                                           │\n");
+
+        printf("├───────────────────────────────────────────┤\n");
+
+        printf("│                a] Origin                  │\n");
+
+        printf("│                b] Location                │\n");
+
+        printf("│                c] Move                    │\n");
+
+        printf("│                d] Exit                    │\n");
+
+        printf("│                                           │\n");
+
+        printf("└───────────────────────────────────────────┘\n");
+
+        printf("Enter a valid choice: ");
+
+        scanf(" %c", &choice);
+
+        switch (choice)
+
+        {
+
+            case 'a':
+
+                showOrigin();
+
+                break;
+
+            case 'b':
+
+                showLocation(currentLocation);
+
+                break;
+
+            case 'c':
+
+                moveRobot(&currentLocation);
+
+                break;
+
+            case 'd':
+
+                clearScreen();
+
+                exit(0);
+
+            default:
+
+                printf("Invalid choice.\n");
+
+                break;
+
+        }
+
+    }
+
+    return 0;
+
+}
+
+    
